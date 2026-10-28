@@ -1,3 +1,4 @@
+mod compaction;
 mod engine;
 mod error;
 mod inspection;

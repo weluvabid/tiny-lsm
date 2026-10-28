@@ -63,12 +63,13 @@ impl SortedRun {
         let final_path = run_path(directory, generation);
         let temp_path = directory.join(format!(".run-{}.tmp", generation.get()));
 
+        let file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&temp_path)
+            .map_err(|source| io_error("creating temporary run", &temp_path, source))?;
+
         let result = (|| {
-            let file = OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .open(&temp_path)
-                .map_err(|source| io_error("creating temporary run", &temp_path, source))?;
             let mut writer = io::BufWriter::new(file);
             writer
                 .write_all(MAGIC)
@@ -226,7 +227,7 @@ pub(crate) fn next_generation(runs: &[SortedRun]) -> Result<Generation, TinyLsmE
     Ok(Generation::new(next))
 }
 
-fn run_path(directory: &Path, generation: Generation) -> PathBuf {
+pub(crate) fn run_path(directory: &Path, generation: Generation) -> PathBuf {
     directory.join(format!("run-{}.tlsm", generation.get()))
 }
 

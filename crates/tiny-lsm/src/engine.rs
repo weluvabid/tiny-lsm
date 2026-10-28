@@ -1,13 +1,14 @@
 use std::{
     collections::BTreeSet,
-    fs,
+    fs, io,
     path::{Path, PathBuf},
 };
 
 use crate::{
     Generation, Key, RecordInfo, RecordValue, RunId, RunInfo, StoreSnapshot, TinyLsmError, Value,
+    compaction::merge_runs,
     memtable::Memtable,
-    run::{SortedRun, discover, next_generation},
+    run::{SortedRun, discover, next_generation, run_path},
 };
 
 #[derive(Debug, Default)]
@@ -88,6 +89,49 @@ impl Engine {
 
         self.runs.push(run);
         self.memtable.clear();
+        Ok(true)
+    }
+
+    /// Merges all active sorted runs into one run, preserving logical state.
+    ///
+    /// Returns `false` when fewer than two runs exist.
+    pub fn compact(&mut self) -> Result<bool, TinyLsmError> {
+        if self.runs.len() < 2 {
+            return Ok(false);
+        }
+
+        let directory = self.directory.as_deref().ok_or_else(|| {
+            TinyLsmError::InvalidState(
+                "compaction requires an engine opened from a directory".into(),
+            )
+        })?;
+        let generation = next_generation(&self.runs)?;
+        let entries = merge_runs(&self.runs);
+        let replacement = SortedRun::write(directory, generation, &entries)?;
+        let previous_runs = std::mem::take(&mut self.runs);
+        self.runs.push(replacement);
+
+        for (index, old_run) in previous_runs.iter().enumerate() {
+            let path = run_path(directory, old_run.generation);
+            match fs::remove_file(&path) {
+                Ok(()) => {}
+                Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+                Err(source) => {
+                    self.runs
+                        .extend(previous_runs[index..].iter().map(|run| SortedRun {
+                            generation: run.generation,
+                            entries: run.entries.clone(),
+                        }));
+                    self.runs.sort_by_key(|run| run.generation);
+                    return Err(TinyLsmError::Io {
+                        operation: "removing compacted run",
+                        path: Some(path),
+                        source,
+                    });
+                }
+            }
+        }
+
         Ok(true)
     }
 
