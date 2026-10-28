@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    Key, RecordValue, TinyLsmError, Value,
+    Generation, Key, RecordInfo, RecordValue, RunId, RunInfo, StoreSnapshot, TinyLsmError, Value,
     memtable::Memtable,
     run::{SortedRun, discover, next_generation},
 };
@@ -111,5 +111,50 @@ impl Engine {
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
+    }
+
+    /// Returns a deterministic snapshot of the current storage layout.
+    ///
+    /// Records are ordered lexicographically by key within each layer, and
+    /// runs are ordered from oldest to newest.
+    #[must_use]
+    pub fn inspect(&self) -> StoreSnapshot {
+        let memtable_records = self
+            .memtable
+            .snapshot_entries()
+            .into_iter()
+            .map(|(key, value)| RecordInfo { key, value })
+            .collect();
+
+        let runs = self
+            .runs
+            .iter()
+            .map(|run| {
+                let records: Vec<RecordInfo> = run
+                    .entries
+                    .iter()
+                    .map(|(key, value)| RecordInfo {
+                        key: key.clone(),
+                        value: value.clone(),
+                    })
+                    .collect();
+                let tombstone_count = records
+                    .iter()
+                    .filter(|record| matches!(&record.value, RecordValue::Tombstone))
+                    .count();
+
+                RunInfo {
+                    id: RunId::new(run.generation.get()),
+                    generation: Generation::new(run.generation.get()),
+                    records,
+                    tombstone_count,
+                }
+            })
+            .collect();
+
+        StoreSnapshot {
+            memtable_records,
+            runs,
+        }
     }
 }
