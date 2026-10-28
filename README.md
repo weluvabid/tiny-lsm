@@ -1,10 +1,6 @@
 # TinyLSM
 
-A tiny, inspectable LSM-tree key-value store written in Rust.
-
-TinyLSM demonstrates mutable memtables, immutable disk-backed sorted runs,
-layered reads, tombstones, and compaction through explicit storage contracts
-and invariant-driven tests.
+A small, inspectable LSM-tree key-value store in Rust.
 
 ## Development
 

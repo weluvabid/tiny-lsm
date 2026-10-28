@@ -12,11 +12,8 @@ impl Memtable {
         self.entries.insert(key, RecordValue::Value(value));
     }
 
-    pub(crate) fn get(&self, key: &Key) -> Option<&Value> {
-        match self.entries.get(key) {
-            Some(RecordValue::Value(value)) => Some(value),
-            Some(RecordValue::Tombstone) | None => None,
-        }
+    pub(crate) fn record(&self, key: &Key) -> Option<&RecordValue> {
+        self.entries.get(key)
     }
 
     pub(crate) fn delete(&mut self, key: Key) {
@@ -28,5 +25,24 @@ impl Memtable {
             .values()
             .filter(|record| matches!(record, RecordValue::Value(_)))
             .count()
+    }
+
+    pub(crate) fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+
+    pub(crate) fn snapshot_entries(&self) -> Vec<(Key, RecordValue)> {
+        self.entries
+            .iter()
+            .map(|(key, value)| (key.clone(), value.clone()))
+            .collect()
+    }
+
+    pub(crate) fn clear(&mut self) {
+        self.entries.clear();
+    }
+
+    pub(crate) fn keys(&self) -> impl Iterator<Item = &Key> {
+        self.entries.keys()
     }
 }
