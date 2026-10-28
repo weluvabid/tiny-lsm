@@ -1,8 +1,6 @@
 use std::fmt;
 
 /// An opaque byte-string key, ordered lexicographically by its bytes.
-///
-/// Empty keys are valid. No UTF-8 interpretation is applied.
 #[derive(Clone, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Key(Vec<u8>);
 
@@ -38,6 +36,18 @@ impl From<&[u8]> for Key {
     }
 }
 
+impl From<&str> for Key {
+    fn from(value: &str) -> Self {
+        Self(value.as_bytes().to_vec())
+    }
+}
+
+impl From<String> for Key {
+    fn from(value: String) -> Self {
+        Self(value.into_bytes())
+    }
+}
+
 impl AsRef<[u8]> for Key {
     fn as_ref(&self) -> &[u8] {
         self.as_bytes()
@@ -50,9 +60,7 @@ impl fmt::Debug for Key {
     }
 }
 
-/// An opaque byte-string value.
-///
-/// Empty values are valid and remain distinct from deletion tombstones.
+/// An opaque byte-string value. Empty values are valid.
 #[derive(Clone, Default, Eq, Hash, PartialEq)]
 pub struct Value(Vec<u8>);
 
@@ -91,6 +99,18 @@ impl From<Vec<u8>> for Value {
 impl From<&[u8]> for Value {
     fn from(bytes: &[u8]) -> Self {
         Self(bytes.to_vec())
+    }
+}
+
+impl From<&str> for Value {
+    fn from(value: &str) -> Self {
+        Self(value.as_bytes().to_vec())
+    }
+}
+
+impl From<String> for Value {
+    fn from(value: String) -> Self {
+        Self(value.into_bytes())
     }
 }
 
