@@ -20,13 +20,6 @@ impl Memtable {
         self.entries.insert(key, RecordValue::Tombstone);
     }
 
-    pub(crate) fn live_len(&self) -> usize {
-        self.entries
-            .values()
-            .filter(|record| matches!(record, RecordValue::Value(_)))
-            .count()
-    }
-
     pub(crate) fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }
