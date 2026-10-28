@@ -1,0 +1,14 @@
+[package]
+name = "tiny-lsm"
+version = "0.1.0"
+description = "A tiny, inspectable LSM-tree key-value store"
+license.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "tiny_lsm"
+path = "src/lib.rs"
+
+[lints]
+workspace = true
