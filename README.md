@@ -19,7 +19,8 @@ Single-writer, synchronous API. No WAL, concurrent writers, background compactio
 ## Development
 
 ```sh
-cargo fmt --all -- --check
-cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace
+./scripts/check.sh
+./scripts/bench.sh
 ```
+
+The benchmark reports median and p95 nanoseconds per item for in-memory writes and reads, flush, reads across eight runs, compaction, and reopening a store. It is a repeatable local baseline, not a cross-machine performance claim. Set `BENCH_ITEMS` and `BENCH_SAMPLES` to adjust workload size and sample count.
