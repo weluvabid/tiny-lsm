@@ -187,6 +187,7 @@ impl SortedRun {
 }
 
 pub(crate) fn discover(directory: &Path) -> Result<Vec<SortedRun>, TinyLsmError> {
+    remove_stale_temporary_runs(directory)?;
     let mut paths = Vec::new();
     for entry in fs::read_dir(directory)
         .map_err(|source| io_error("listing store directory", directory, source))?
@@ -204,6 +205,9 @@ pub(crate) fn discover(directory: &Path) -> Result<Vec<SortedRun>, TinyLsmError>
                 .and_then(|name| name.strip_suffix(".tlsm"))
                 .and_then(|number| number.parse::<u64>().ok())
                 .ok_or_else(|| corrupt(&path, "invalid run filename"))?;
+            if name != format!("run-{number}.tlsm") {
+                return Err(corrupt(&path, "non-canonical run filename"));
+            }
             paths.push((Generation::new(number), path));
         }
     }
@@ -214,6 +218,51 @@ pub(crate) fn discover(directory: &Path) -> Result<Vec<SortedRun>, TinyLsmError>
         runs.push(SortedRun::load(path, generation)?);
     }
     Ok(runs)
+}
+
+fn remove_stale_temporary_runs(directory: &Path) -> Result<(), TinyLsmError> {
+    let mut removed = false;
+    for entry in fs::read_dir(directory)
+        .map_err(|source| io_error("listing store directory", directory, source))?
+    {
+        let entry =
+            entry.map_err(|source| io_error("reading directory entry", directory, source))?;
+        let path = entry.path();
+        let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
+            continue;
+        };
+        let is_temporary_run = name
+            .strip_prefix(".run-")
+            .and_then(|name| name.strip_suffix(".tmp"))
+            .is_some_and(|number| {
+                !number.is_empty() && number.bytes().all(|byte| byte.is_ascii_digit())
+            });
+        let is_file = entry
+            .file_type()
+            .map_err(|source| io_error("reading temporary run metadata", &path, source))?
+            .is_file();
+        if is_temporary_run && is_file {
+            fs::remove_file(&path)
+                .map_err(|source| io_error("removing stale temporary run", &path, source))?;
+            removed = true;
+        }
+    }
+    if removed {
+        sync_directory(directory)?;
+    }
+    Ok(())
+}
+
+fn sync_directory(directory: &Path) -> Result<(), TinyLsmError> {
+    #[cfg(unix)]
+    {
+        File::open(directory)
+            .and_then(|file| file.sync_all())
+            .map_err(|source| io_error("syncing store directory", directory, source))?;
+    }
+    #[cfg(not(unix))]
+    let _ = directory;
+    Ok(())
 }
 
 pub(crate) fn next_generation(runs: &[SortedRun]) -> Result<Generation, TinyLsmError> {
