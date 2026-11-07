@@ -85,6 +85,12 @@ The documentation is organized around the actual implementation and its trade-of
 - [Testing strategy](docs/TESTING.md)
 - [Benchmark methodology](docs/BENCHMARKS.md)
 
+## Benchmark recording
+
+The recording below shows the benchmark harness running locally. See the [benchmark notes](docs/BENCHMARKS.md) for workload definitions, configuration and interpretation.
+
+![TinyLSM benchmark run](benchmarks/tiny-lsm-benchmark.gif)
+
 ## Development
 
 Requires a stable Rust toolchain with `rustfmt` and `clippy` components.
