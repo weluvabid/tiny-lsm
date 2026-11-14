@@ -29,7 +29,7 @@ Each workload is sampled repeatedly. The output reports median and p95 nanosecon
 
 ## Interpreting results
 
-These measurements provide a repeatable local baseline for observing changes in TinyLSM. Results are specific to the machine and environment running the benchmark.
+These measurements provide a repeatable local baseline for observing changes in TinyLSM.
 
 Results depend on CPU, memory, filesystem, storage device, operating system, build toolchain, cache state, item count and sample count. Flush, compaction and reopen include filesystem activity; in-memory workloads do not.
 
