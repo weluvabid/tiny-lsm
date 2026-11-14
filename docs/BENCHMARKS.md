@@ -29,8 +29,8 @@ Each workload is sampled repeatedly. The output reports median and p95 nanosecon
 
 ## Interpreting results
 
-These measurements are intended as a repeatable local baseline for observing changes in this implementation. They are not a comparison against RocksDB, sled, redb or another database. They are not portable performance claims.
+These measurements provide a repeatable local baseline for observing changes in TinyLSM. Results are specific to the machine and environment running the benchmark.
 
-Results depend on CPU, memory, filesystem, storage device, operating system, build toolchain, cache state, item count and sample count. Flush, compaction and reopen include filesystem activity; in-memory workloads do not. The benchmark does not currently report allocation counts, peak memory, read/write amplification, throughput under concurrency or latency distributions beyond its sample-derived median and p95.
+Results depend on CPU, memory, filesystem, storage device, operating system, build toolchain, cache state, item count and sample count. Flush, compaction and reopen include filesystem activity; in-memory workloads do not.
 
-Do not use a single run as evidence of a performance improvement. Compare runs on the same machine with the same toolchain and workload parameters, repeat measurements, and investigate variance before drawing conclusions.
+For useful comparisons, run the same workload on the same machine and toolchain, repeat measurements, and account for variance.

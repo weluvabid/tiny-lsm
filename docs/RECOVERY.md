@@ -30,13 +30,6 @@ This behavior is covered by a recovery integration test that reconstructs the st
 
 The run writer flushes its buffered writer and calls `sync_all` on the temporary run file before renaming it to the final filename. On Unix, temporary-run recovery cleanup synchronizes the directory after removing files.
 
-The normal publication path does **not** currently synchronize the parent directory after the rename. Consequently, the implementation should not claim that a successful `flush` or `compact` is guaranteed to survive every sudden power loss or storage-device failure. The current design is useful for studying file publication and process-restart recovery, but it is not a fully specified durable database protocol.
+The normal publication path does not synchronize the parent directory after the rename. A successful `flush` or `compact` confirms that the run file was synced and published, but does not guarantee that the directory entry survives sudden power loss.
 
-## Other recovery limitations
-
-- There is no write-ahead log. Changes in the memtable are not persisted until flush succeeds.
-- There is no manifest; the directory contents are the run catalog.
-- There are no checksums to detect all forms of silent bit corruption.
-- There is no inter-process lock or coordination between multiple writers.
-- There is no automatic repair or salvage mode for corrupt published runs.
-- The file format has no migration tooling or compatibility guarantee yet.
+Changes held only in the memtable are not persisted until a flush publishes a run. The run directory is the catalog used during recovery; each published run is validated before it is loaded.

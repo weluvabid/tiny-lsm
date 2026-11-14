@@ -2,7 +2,7 @@
 
 A log-structured merge-tree moves write work away from in-place mutation of a large sorted disk structure. New records are first accumulated in memory. The in-memory state is later written as an immutable sorted component, and multiple components are periodically merged.
 
-TinyLSM implements a deliberately small version of this model: one mutable memtable and a collection of immutable sorted runs.
+TinyLSM uses one mutable memtable and a collection of immutable sorted runs.
 
 ## Why sorted layers?
 
@@ -18,7 +18,7 @@ TinyLSM does not store an explicit sequence number in each record. Instead, rece
 2. A run with a larger generation wins over a run with a smaller generation.
 3. Within a layer there is one record per key.
 
-This is sufficient for the current single-writer, synchronous model. It is not a substitute for sequence numbers or concurrency control in a multi-writer database.
+This keeps recency tied to the storage layer rather than adding a sequence number to every record.
 
 ## Tombstones
 

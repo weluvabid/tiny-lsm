@@ -48,7 +48,3 @@ Let `M` be the number of records in the memtable, `R` the number of runs, `N` th
 - `len()` builds a set of candidate keys and resolves each against the layered state; it is a convenience scan, not a constant-time metadata lookup.
 
 These are algorithmic bounds. Filesystem latency, allocation, key/value sizes and cache behavior affect observed timings.
-
-## Omissions
-
-There is no WAL, transaction protocol, concurrent reader/writer coordination, background compaction, leveled/tiered policy, Bloom filter, block cache, checksummed block format, manifest, or remote API. These omissions keep the implementation focused and should be considered before using it outside an educational or experimental context.

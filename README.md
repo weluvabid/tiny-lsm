@@ -68,8 +68,6 @@ Writes update the memtable. A flush serializes its ordered snapshot into a new i
        +-------------------------+
 ```
 
-This is a compact implementation. It has a synchronous single-writer API and does not implement a write-ahead log, concurrent access, background maintenance, Bloom filters, block cache, transactions or a network protocol.
-
 ## Engineering notes
 
 The documentation is organized around the actual implementation and its trade-offs:
